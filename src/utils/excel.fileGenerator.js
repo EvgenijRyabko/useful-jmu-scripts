@@ -4,6 +4,9 @@ import { access } from 'fs/promises';
 export class ExcelTable {
   tableName;
   workBook = new xlsx.Workbook();
+  /**
+   * @type {{ [key: string]: xlsx.Worksheet }}
+   */
   sheets = {};
 
   constructor(tableName) {
@@ -41,8 +44,12 @@ export class ExcelTable {
     const row = sheet.getRow(rowIndex);
 
     for (const header of pHeaders) {
-      row.getCell(colIndex).value = header;
-      row.getCell(colIndex).style = style;
+      sheet.getColumn(colIndex).width = 25;
+
+      const cell = row.getCell(colIndex);
+
+      cell.value = header;
+      cell.style = style;
       colIndex++;
     }
 

@@ -9,7 +9,7 @@ const { Knex } = knex;
  */
 export const checkConnection = async (name, connection) => {
   try {
-    await connection.raw('select 1+1 as sum');
+    await connection.raw('SELECT 1 + 1').timeout(1000, { cancel: true });
 
     console.log(`✅ Подключение к базе ${name} установлено!`);
   } catch (err) {

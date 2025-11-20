@@ -1,11 +1,11 @@
-import { jmuLocalConnection } from '../../database/knexfile.js';
+import { jmuConnection } from '../../database/knexfile.js';
 import { relationEnum } from './relationVariants.enum.js';
 
 export const parseRelations = async () => {
-  const trx = await jmuLocalConnection.transaction();
+  const trx = await jmuConnection.transaction();
 
   try {
-    const allStudentRelations = await jmuLocalConnection('students_relatives').select(
+    const allStudentRelations = await jmuConnection('students_relatives').select(
       'id',
       'type_relationship',
     );

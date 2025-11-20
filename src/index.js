@@ -2,7 +2,10 @@ import express from 'express';
 import multer from 'multer';
 
 import { abtConnection, jmuConnection, jmuLocalConnection } from './database/knexfile.js';
+import { parsePsyhoResults } from './modules/addStudentCriticalPsyho/addStudentCriticalPsyho.js';
+import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitaryExcel.js';
 import { getStudentSummary } from './modules/createStudentSummary/createStudentSummary.js';
+import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
 import { checkConnection } from './utils/checkConnection.js';
 
@@ -34,6 +37,36 @@ app.post('/createStudentSummary', async (req, res) => {
 
   try {
     await getStudentSummary(pYearAdmission, pIdForm);
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/fillStudentsHostel', async (req, res) => {
+  try {
+    await fillStudentsHostelInfo();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/createMilitaryExcel', async (req, res) => {
+  try {
+    await createMilitaryExcel();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parsePsyhoResults', async (req, res) => {
+  try {
+    await parsePsyhoResults();
 
     res.status(200).send('Ok');
   } catch (err) {

@@ -21,6 +21,7 @@ export const jmuConnection = knex({
     user: JMU_USER,
     password: JMU_PASSWORD,
     database: JMU_DATABASE,
+    connectionTimeoutMillis: 2000,
   },
   pool: {
     min: 0,
@@ -51,6 +52,7 @@ export const abtConnection = knex({
     user: ABT_USER,
     password: ABT_PASSWORD,
     database: ABT_DATABASE,
+    connectionTimeoutMillis: 2000,
   },
   pool: {
     min: 0,

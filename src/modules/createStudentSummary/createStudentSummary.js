@@ -4,62 +4,7 @@ const { Knex } = knex;
 
 import { jmuConnection } from '../../database/knexfile.js';
 import { ExcelTable } from '../../utils/excel.fileGenerator.js';
-
-/**
- * @type {import('exceljs').Style}
- */
-const defaultCell = {
-  alignment: {
-    wrapText: true,
-    vertical: 'middle',
-    horizontal: 'center',
-    indent: 1,
-    readingOrder: 'ltr',
-    shrinkToFit: false,
-  },
-  border: {
-    top: {
-      style: 'thin',
-      color: { argb: '000000' },
-    },
-    bottom: {
-      style: 'thin',
-      color: { argb: '000000' },
-    },
-    left: {
-      style: 'thin',
-      color: { argb: '000000' },
-    },
-    right: {
-      style: 'thin',
-      color: { argb: '000000' },
-    },
-  },
-};
-
-/**
- * @type {import('exceljs').Style}
- */
-const headerStyle = {
-  ...defaultCell,
-  font: {
-    bold: true,
-    color: { argb: 'FFFFFFFF' },
-  },
-  fill: {
-    pattern: 'solid',
-    type: 'pattern',
-    fgColor: { argb: 'FE32C0E2' },
-  },
-};
-
-/**
- * @type {import('exceljs').Style}
- */
-const rowTitleStyle = {
-  ...defaultCell,
-  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'EDEDED' } },
-};
+import { defaultCell, headerStyle, rowTitleStyle } from '../../utils/excel.styles.js';
 
 export const getStudentSummary = async (year, form) => {
   const formEnum = {
