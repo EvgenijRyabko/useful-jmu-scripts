@@ -7,6 +7,7 @@ import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitar
 import { getStudentSummary } from './modules/createStudentSummary/createStudentSummary.js';
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
+import { parseMethodic } from './modules/processMethodicFour/processMethodic.js';
 import { checkConnection } from './utils/checkConnection.js';
 
 const app = express();
@@ -67,6 +68,16 @@ app.post('/createMilitaryExcel', async (req, res) => {
 app.post('/parsePsyhoResults', async (req, res) => {
   try {
     await parsePsyhoResults();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parseMethodic', async (req, res) => {
+  try {
+    await parseMethodic();
 
     res.status(200).send('Ok');
   } catch (err) {
