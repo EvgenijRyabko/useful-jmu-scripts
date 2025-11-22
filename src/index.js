@@ -8,6 +8,7 @@ import { getStudentSummary } from './modules/createStudentSummary/createStudentS
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
 import { parseMethodic } from './modules/processMethodicFour/processMethodic.js';
+import { removeStudentCritical } from './modules/removeStudentCriticalPsyho/removeStudentCriticalPsyho.js';
 import { checkConnection } from './utils/checkConnection.js';
 
 const app = express();
@@ -78,6 +79,16 @@ app.post('/parsePsyhoResults', async (req, res) => {
 app.post('/parseMethodic', async (req, res) => {
   try {
     await parseMethodic();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.delete('/deleteCriticalKeys', async (req, res) => {
+  try {
+    await removeStudentCritical();
 
     res.status(200).send('Ok');
   } catch (err) {

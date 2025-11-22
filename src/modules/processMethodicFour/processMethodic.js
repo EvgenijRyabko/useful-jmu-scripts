@@ -1,6 +1,10 @@
 import { jmuConnection, jmuLocalConnection } from '../../database/knexfile.js';
 import { keysCriticalValue } from './criticalKeys.js';
-import { processAdaptability, processSuicide } from './testProcessing.js';
+import {
+  processAdaptability,
+  processProfessionalOrientation,
+  processSuicide,
+} from './testProcessing.js';
 
 const connection = jmuConnection;
 
@@ -12,6 +16,7 @@ const getAllStudentAnswers = (idStudent, idTest) => {
   return connection('students_answers as sa')
     .select({
       numberQuestion: 'q.number',
+      position: 'a.position',
       ball: 'a.ball',
     })
     .innerJoin('answers as a', 'sa.id_answer', 'a.id')
@@ -20,23 +25,18 @@ const getAllStudentAnswers = (idStudent, idTest) => {
     .andWhere('sa.id_student', idStudent);
 };
 
-const insertStudentResult = (trx, idTest, idStudent, result) => {
-  return trx('students_result').insert({
-    id_test: idTest,
-    id_student: idStudent,
-    result,
-  });
-};
-
-const deletePreviousResults = (trx, idTest, idStudent) => {
-  return trx('students_result').delete().where('id_test', idTest).andWhere('id_student', idStudent);
+const updateStudentResult = (trx, result, idTest, idStudent) => {
+  return trx('students_result')
+    .update('result', result)
+    .where('id_student', idStudent)
+    .andWhere('id_test', idTest);
 };
 
 export const parseMethodic = async () => {
   const trx = await connection.transaction();
 
   try {
-    const students = await getAllStudentsOfMethodic(3);
+    const students = await getAllStudentsOfMethodic(1);
 
     let counter = 1;
     for (const student of students) {
@@ -44,15 +44,13 @@ export const parseMethodic = async () => {
 
       const answers = await getAllStudentAnswers(student.id_student, student.id_test);
 
-      const result = processSuicide(answers);
+      const result = processProfessionalOrientation(answers);
 
       for (const key in result) {
         if (keysCriticalValue[key]) result[`${key}Critical`] = keysCriticalValue[key];
       }
 
-      await deletePreviousResults(trx, student.id_test, student.id_student);
-
-      await insertStudentResult(trx, student.id_test, student.id_student, result);
+      await updateStudentResult(trx, result, student.id_test, student.id_student);
 
       counter += 1;
     }

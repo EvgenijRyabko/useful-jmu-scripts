@@ -101,3 +101,52 @@ export const processSuicide = (questionsArr) => {
 
   return resultObj;
 };
+
+export const processProfessionalOrientation = (questionsArr) => {
+  const resultObj = {
+    economicWork: 0,
+    peopleWork: 0,
+    smartWork: 0,
+    practicalWork: 0,
+    aestheticWork: 0,
+    extremeWork: 0,
+  };
+
+  for (const question of questionsArr) {
+    const numberQuestion = parseInt(question.numberQuestion);
+    const position = parseInt(question.position);
+
+    resultObj.peopleWork += getBallByQuestion(numberQuestion, position, {
+      1: [1, 13, 18, 24],
+      2: [3, 6, 8, 16],
+      3: [5, 11, 15, 20],
+    });
+    resultObj.smartWork += getBallByQuestion(numberQuestion, position, {
+      1: [3, 5, 21],
+      2: [7, 9, 11, 14, 22],
+      3: [2, 6, 18, 23],
+    });
+    resultObj.practicalWork += getBallByQuestion(numberQuestion, position, {
+      1: [11, 12, 15, 22],
+      2: [4, 5, 18, 20],
+      3: [7, 16, 19, 21],
+    });
+    resultObj.aestheticWork += getBallByQuestion(numberQuestion, position, {
+      1: [2, 7, 9, 23],
+      2: [12, 14, 17, 21],
+      3: [1, 3, 10, 22],
+    });
+    resultObj.extremeWork += getBallByQuestion(numberQuestion, position, {
+      1: [8, 10, 17, 19],
+      2: [2, 13, 15, 24],
+      3: [4, 9, 12, 14],
+    });
+    resultObj.economicWork += getBallByQuestion(numberQuestion, position, {
+      1: [4, 6, 16, 20],
+      2: [1, 10, 19, 23],
+      3: [8, 13, 17, 24],
+    });
+  }
+
+  return resultObj;
+};
