@@ -150,3 +150,40 @@ export const processProfessionalOrientation = (questionsArr) => {
 
   return resultObj;
 };
+
+export const processExtremeBehavior = (questionsArr) => {
+  const resultObj = {
+    searchOfThrill: 0,
+    intoleranceOfMonotony: 0,
+    searchOfNewExperiences: 0,
+    desireForDifficulties: 0,
+  };
+
+  for (const question of questionsArr) {
+    const numberQuestion = Number(question.numberQuestion);
+    const ball = Number(question.ball);
+
+    resultObj.searchOfThrill += getSimpleBall(
+      numberQuestion,
+      ball,
+      [2, 10, 12, 13, 17, 25, 37, 18, 29, 34],
+    );
+    resultObj.intoleranceOfMonotony += getSimpleBall(
+      numberQuestion,
+      ball,
+      [5, 8, 15, 21, 22, 28, 31, 36, 6, 16],
+    );
+    resultObj.searchOfNewExperiences += getSimpleBall(
+      numberQuestion,
+      ball,
+      [4, 9, 14, 20, 24, 26, 30, 33, 35, 40],
+    );
+    resultObj.desireForDifficulties += getSimpleBall(
+      numberQuestion,
+      ball,
+      [3, 23, 27, 38, 39, 1, 7, 11, 19, 32],
+    );
+  }
+
+  return resultObj;
+};

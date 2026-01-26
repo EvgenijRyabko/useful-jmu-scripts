@@ -7,6 +7,7 @@ import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitar
 import { getStudentSummary } from './modules/createStudentSummary/createStudentSummary.js';
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
+import { parseSkudNewTable } from './modules/parseSkudNewTable/parseSkudNewTable.js';
 import { parseMethodic } from './modules/processMethodicFour/processMethodic.js';
 import { removeStudentCritical } from './modules/removeStudentCriticalPsyho/removeStudentCriticalPsyho.js';
 import { checkConnection } from './utils/checkConnection.js';
@@ -89,6 +90,16 @@ app.post('/parseMethodic', async (req, res) => {
 app.delete('/deleteCriticalKeys', async (req, res) => {
   try {
     await removeStudentCritical();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parseSkudNewTable', async (req, res) => {
+  try {
+    await parseSkudNewTable();
 
     res.status(200).send('Ok');
   } catch (err) {

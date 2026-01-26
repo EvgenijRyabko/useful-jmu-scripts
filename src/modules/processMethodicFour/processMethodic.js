@@ -2,6 +2,7 @@ import { jmuConnection, jmuLocalConnection } from '../../database/knexfile.js';
 import { keysCriticalValue } from './criticalKeys.js';
 import {
   processAdaptability,
+  processExtremeBehavior,
   processProfessionalOrientation,
   processSuicide,
 } from './testProcessing.js';
