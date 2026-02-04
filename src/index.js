@@ -8,6 +8,7 @@ import { getStudentSummary } from './modules/createStudentSummary/createStudentS
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
 import { parseSkudNewTable } from './modules/parseSkudNewTable/parseSkudNewTable.js';
+import { parseStudentHistory } from './modules/parseStudentHistory/parseStudentHistory.js';
 import { parseMethodic } from './modules/processMethodicFour/processMethodic.js';
 import { removeStudentCritical } from './modules/removeStudentCriticalPsyho/removeStudentCriticalPsyho.js';
 import { checkConnection } from './utils/checkConnection.js';
@@ -100,6 +101,16 @@ app.delete('/deleteCriticalKeys', async (req, res) => {
 app.post('/parseSkudNewTable', async (req, res) => {
   try {
     await parseSkudNewTable();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parseStudentHistory', async (req, res) => {
+  try {
+    await parseStudentHistory();
 
     res.status(200).send('Ok');
   } catch (err) {
