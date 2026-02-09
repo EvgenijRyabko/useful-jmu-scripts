@@ -4,6 +4,7 @@ import multer from 'multer';
 import { abtConnection, jmuConnection, jmuLocalConnection } from './database/knexfile.js';
 import { parsePsyhoResults } from './modules/addStudentCriticalPsyho/addStudentCriticalPsyho.js';
 import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitaryExcel.js';
+import { createStudentExcel } from './modules/createStudentExcel/createStudentExcel.js';
 import { getStudentSummary } from './modules/createStudentSummary/createStudentSummary.js';
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
@@ -18,7 +19,6 @@ const upload = multer();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(upload.array());
 
 app.post('/parseRelations', async (req, res) => {
   try {
@@ -64,6 +64,22 @@ app.post('/createMilitaryExcel', async (req, res) => {
 
     res.status(200).send('Ok');
   } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/createStudentExcel', upload.single('file'), async (req, res) => {
+  try {
+    const dataFile = req.file;
+
+    if (!dataFile) res.status(400).send('Отсутствует файл!');
+
+    await createStudentExcel(dataFile);
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    console.log(err);
+
     res.status(500).send(err?.message || err);
   }
 });

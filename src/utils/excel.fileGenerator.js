@@ -1,5 +1,13 @@
 import xlsx from 'exceljs';
-import { access } from 'fs/promises';
+import { access, mkdir } from 'fs/promises';
+
+const checkDirectory = async (path) => {
+  try {
+    await access(path);
+  } catch {
+    await mkdir(path, { recursive: true });
+  }
+};
 
 export class ExcelTable {
   tableName;
@@ -75,7 +83,7 @@ export class ExcelTable {
 
   async saveTable(path) {
     try {
-      await access(path);
+      await checkDirectory(path);
 
       await this.workBook.xlsx.writeFile(`${path}/${this.tableName}.xlsx`);
     } catch (error) {

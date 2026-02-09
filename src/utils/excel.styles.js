@@ -37,12 +37,12 @@ export const headerStyle = {
   ...defaultCell,
   font: {
     bold: true,
-    color: { argb: 'FFFFFFFF' },
+    color: { argb: 'FF000000' },
   },
   fill: {
-    pattern: 'solid',
     type: 'pattern',
-    fgColor: { argb: '7d7d7d' },
+    pattern: 'solid',
+    fgColor: { argb: 'FFD9D9D9' },
   },
 };
 
