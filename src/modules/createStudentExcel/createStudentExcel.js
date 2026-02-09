@@ -119,7 +119,7 @@ const handlers = {
     }
 
     row.getCell(RESULT_COLS.studyPeriod).value = studyPeriod;
-    row.getCell(RESULT_COLS.studyEnd).value = ctx.studyBegin ? `30.06.${ctx.studyEnd}` : '';
+    row.getCell(RESULT_COLS.studyEnd).value = ctx.studyEnd ? `30.06.${ctx.studyEnd}` : '';
   },
 
   educationProgram: (cell, row) => {
@@ -194,6 +194,7 @@ export const createStudentExcel = async (file) => {
       const ctx = {
         snils: { fio: '', series: '', number: '' },
         studyBegin: '',
+        studyEnd: '',
       };
 
       for (const key in tandemDataKeys) {
