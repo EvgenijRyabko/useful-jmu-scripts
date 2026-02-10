@@ -19,6 +19,8 @@ const tandemDataKeys = {
   studyPeriod: 34,
   enrollOrder: 46,
   enrollDate: 45,
+  deductDate: 48,
+  graduationDate: 49,
 };
 
 const reportDataKeys = {
@@ -32,6 +34,8 @@ const reportDataKeys = {
   enrollOrder: 20,
   eduProfile: 24,
   studyPeriod: 26,
+  deductDate: 22,
+  graduationDate: 21,
 };
 
 const RESULT_COLS = {
@@ -170,11 +174,9 @@ const getStudyPeriod = (period) => {
   else return parsedPeriod[0] * 12 + parsedPeriod[1];
 };
 
-export const createStudentExcel = async (file) => {
-  const fileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
-
+export const createStudentExcel = async (file, fileName) => {
   const dataTable = new ExcelTable('dataTable');
-  const resultTable = new ExcelTable(fileName.split('.')[0] || 'data');
+  const resultTable = new ExcelTable(fileName);
 
   const resultSheet = resultTable.createSheet('Обучающиеся');
 
@@ -186,6 +188,8 @@ export const createStudentExcel = async (file) => {
   const studentWorksheet = dataTable.workBook.getWorksheet('Обучающиеся');
 
   const snilsMap = buildSnilsMap(personWorksheet);
+
+  let total = 0;
 
   studentWorksheet.eachRow((row, rowNumber) => {
     if (rowNumber > 6) {
@@ -209,8 +213,12 @@ export const createStudentExcel = async (file) => {
 
       resultRow.getCell(RESULT_COLS.snils).value =
         snilsMap.get(makeSnilsKey(ctx.snils.fio, ctx.snils.series, ctx.snils.number)) || '';
+
+      total++;
     }
   });
 
   await resultTable.saveTable('./data/student');
+
+  return total;
 };

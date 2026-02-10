@@ -74,12 +74,38 @@ app.post('/createStudentExcel', upload.single('file'), async (req, res) => {
 
     if (!dataFile) res.status(400).send('Отсутствует файл!');
 
-    await createStudentExcel(dataFile);
+    const fileName =
+      Buffer.from(dataFile.originalname, 'latin1').toString('utf8').split('.')[0] || 'data';
 
-    res.status(200).send('Ok');
+    const total = await createStudentExcel(dataFile, fileName);
+
+    res.status(200).send({ total });
   } catch (err) {
-    console.log(err);
+    res.status(500).send(err?.message || err);
+  }
+});
 
+app.post('/createStudentExcelMultiple', upload.array('files'), async (req, res) => {
+  try {
+    const files = req.files;
+
+    if (!files || !files.length) res.status(400).send('Отсутствуют файлы!');
+
+    const resObj = {};
+
+    for (const file of files) {
+      const fileName =
+        Buffer.from(file.originalname, 'latin1').toString('utf8').split('.')[0] || 'data';
+
+      const total = await createStudentExcel(file, fileName);
+
+      console.log(`File ${fileName} processed, total students: ${total}`);
+
+      resObj[fileName] = total;
+    }
+
+    res.status(200).send(resObj);
+  } catch (err) {
     res.status(500).send(err?.message || err);
   }
 });
