@@ -13,7 +13,7 @@ const tandemDataKeys = {
   course: 20,
   educationProgram: 25,
   eduProfile: 26,
-  qualification: 28,
+  qualification: 24,
   studyForm: 31,
   enrollOrderDate: 47,
   studyPeriod: 34,
@@ -57,17 +57,17 @@ const RESULT_COLS = {
 };
 
 const levelObj = Object.freeze({
-  Бакалавр: 'Высшее - бакалавриат',
-  Магистр: 'Высшее - магистратура',
-  3: 'Высшее - специалитет',
-  'Без квалификации': 'Высшее - подготовка кадров высокой квалификации',
+  бакалавриат: 'Высшее - бакалавриат',
+  магистратура: 'Высшее - магистратура',
+  спо: 'Среднее профессиональное',
+  аспирантура: 'Высшее - подготовка кадров высокой квалификации',
 });
 
 const levelCodeObj = Object.freeze({
-  Бакалавр: '09',
-  Магистр: '11',
-  3: '10',
-  'Без квалификации': '12',
+  бакалавриат: '09',
+  магистратура: '11',
+  спо: '03',
+  аспирантура: '12',
 });
 
 const handlers = {
@@ -88,8 +88,16 @@ const handlers = {
   },
 
   qualification: (cell, row) => {
-    row.getCell(RESULT_COLS.qualificationText).value = levelObj[cell.value];
-    row.getCell(RESULT_COLS.qualificationCode).value = levelCodeObj[cell.value];
+    const qualification = String(cell.value) || '';
+
+    for (const key in levelObj) {
+      if (qualification.toLowerCase().includes(key)) {
+        row.getCell(RESULT_COLS.qualificationText).value = levelObj[key];
+        row.getCell(RESULT_COLS.qualificationCode).value = levelCodeObj[key];
+
+        break;
+      }
+    }
   },
 
   enrollOrderDate: (cell, row, ctx) => {
