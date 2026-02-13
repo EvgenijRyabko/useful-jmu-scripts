@@ -200,8 +200,8 @@ export const createStudentExcel = async (file, fileName) => {
   let total = 0;
 
   studentWorksheet.eachRow((row, rowNumber) => {
-    if (rowNumber > 6) {
-      const resultRow = resultSheet.getRow(rowNumber - 5);
+    if (rowNumber > 5) {
+      const resultRow = resultSheet.getRow(rowNumber - 4);
 
       const ctx = {
         snils: { fio: '', series: '', number: '' },
