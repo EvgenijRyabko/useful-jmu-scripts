@@ -1,0 +1,139 @@
+[
+  {
+    "name": "UID студенческого билета",
+    "required": true,
+    "code": "UID",
+    "position": 1
+  },
+  {
+    "name": "ФАМИЛИЯ",
+    "required": true,
+    "code": "lastname",
+    "position": 2
+  },
+  {
+    "name": "ИМЯ",
+    "required": true,
+    "code": "firstname",
+    "position": 3
+  },
+  {
+    "name": "ОТЧЕСТВО",
+    "required": false,
+    "code": "middlename",
+    "position": 4
+  },
+  {
+    "name": "КУРС",
+    "required": true,
+    "code": "course",
+    "position": 5
+  },
+  {
+    "name": "НОМЕР ЗАЧЕТНОЙ КНИЖКИ",
+    "required": true,
+    "code": "recordBook",
+    "position": 6
+  },
+  {
+    "name": "ДАТА ВЫДАЧИ ЗАЧЕТНОЙ КНИЖКИ",
+    "required": true,
+    "code": "recordBookIssued",
+    "position": 7
+  },
+  {
+    "name": "Вид научно - исследовательской работы",
+    "required": false,
+    "code": "researchWorkType",
+    "position": 8
+  },
+  {
+    "name": "Оценка",
+    "required": false,
+    "code": "researchWorkMark",
+    "position": 9
+  },
+  {
+    "name": "Дата сдачи",
+    "required": false,
+    "code": "researchWorkDate",
+    "position": 10
+  },
+  {
+    "name": "Фамилия и инициалы преподавателя",
+    "required": false,
+    "code": "researchWorkTeacher",
+    "position": 11
+  },
+  {
+    "name": "Форма выпускной квалификационной работы",
+    "required": false,
+    "code": "graduationWorkType",
+    "position": 12
+  },
+  {
+    "name": "Тема выпускной квалификационной работы",
+    "required": false,
+    "code": "graduationWorkTopic",
+    "position": 13
+  },
+  {
+    "name": "Дата защиты",
+    "required": false,
+    "code": "graduationWorkDate",
+    "position": 14
+  },
+  {
+    "name": "Оценка",
+    "required": false,
+    "code": "graduationWorkMark",
+    "position": 15
+  },
+  {
+    "name": "Номер протокола",
+    "required": false,
+    "code": "graduationWorkProtocol",
+    "position": 16
+  },
+  {
+    "name": "Дата протокола",
+    "required": false,
+    "code": "graduationWorkProtocolDate",
+    "position": 17
+  },
+  {
+    "name": "Сведения о результатах промежуточной аттестации: зачеты и экзамены [Наименование учебных предметов/курсов/дисциплин (модулей) | Учебный год | Общее количество часов (в зачетной единице) | Оценка | Дата сдачи | Фамилия и инициалы преподавателя ]",
+    "required": true,
+    "code": "internSubjects",
+    "position": 18,
+    "length": 2
+  },
+  {
+    "name": "Сведения о факультативных дисциплинах [Наименование учебных предметов/курсов/дисциплин (модулей) | Учебный год | Общее количество часов (в зачетной единице) | Оценка | Дата сдачи | Фамилия и инициалы преподавателя ]",
+    "required": true,
+    "code": "optionalSubjects",
+    "position": 19,
+    "length": 2
+  },
+  {
+    "name": "Сведения о курсовых проектах (работ) [Наименование учебных предметов/ов/дисциплин (модулей) | Тема курсового проекта (работы) | Оценка | Дата сдачи | Фамилия и инициалы преподавателя]",
+    "required": true,
+    "code": "courseWorks",
+    "position": 20,
+    "length": 2
+  },
+  {
+    "name": "Сведения о практике [Наименование вида практики | Место проведения практики | Общее количество часов (в зачетной единице) |  Оценка | Фамилия и инициалы руководителя практики от образовательной организации]",
+    "required": true,
+    "code": "practices",
+    "position": 21,
+    "length": 2
+  },
+  {
+    "name": "Сведения о государственном экзамене [Наименование учебных предметов, курсов, дисциплин (модулей) | Оценка | Дата сдачи ]",
+    "required": true,
+    "code": "stateExamination",
+    "position": 22,
+    "length": 2
+  }
+]

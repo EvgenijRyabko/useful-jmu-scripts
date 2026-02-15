@@ -3,6 +3,7 @@ import multer from 'multer';
 
 import { abtConnection, jmuConnection, jmuLocalConnection } from './database/knexfile.js';
 import { parsePsyhoResults } from './modules/addStudentCriticalPsyho/addStudentCriticalPsyho.js';
+import { createMarksExcel } from './modules/createMarksExcel/createMarks.js';
 import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitaryExcel.js';
 import { createStudentExcel } from './modules/createStudentExcel/createStudentExcel.js';
 import { getStudentSummary } from './modules/createStudentSummary/createStudentSummary.js';
@@ -61,6 +62,16 @@ app.post('/fillStudentsHostel', async (req, res) => {
 app.post('/createMilitaryExcel', async (req, res) => {
   try {
     await createMilitaryExcel();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/createMarksExcel', async (req, res) => {
+  try {
+    await createMarksExcel();
 
     res.status(200).send('Ok');
   } catch (err) {
