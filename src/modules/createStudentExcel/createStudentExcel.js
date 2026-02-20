@@ -11,7 +11,7 @@ const tandemDataKeys = {
   issuedDate: 8,
   recordBook: 18,
   course: 20,
-  educationProgram: 25,
+  eduSpecialty: 25,
   eduProfile: 26,
   qualification: 24,
   studyForm: 31,
@@ -32,7 +32,6 @@ const reportDataKeys = {
   studyForm: 17,
   enrollDate: 18,
   enrollOrder: 20,
-  eduProfile: 24,
   studyPeriod: 26,
   deductDate: 22,
   graduationDate: 21,
@@ -51,6 +50,7 @@ const RESULT_COLS = {
   eduName: 15,
   eduCode: 16,
   enrollOrderDate2: 19,
+  eduProgram: 24,
   studyPeriod: 26,
   studyBegin: 25,
   studyEnd: 27,
@@ -59,12 +59,14 @@ const RESULT_COLS = {
 const levelObj = Object.freeze({
   бакалавриат: 'Высшее - бакалавриат',
   магистратура: 'Высшее - магистратура',
+  специалитет: 'Высшее - специалитет',
   спо: 'Среднее профессиональное',
   аспирантура: 'Высшее - подготовка кадров высокой квалификации',
 });
 
 const levelCodeObj = Object.freeze({
   бакалавриат: '09',
+  специалитет: '10',
   магистратура: '11',
   спо: '03',
   аспирантура: '12',
@@ -134,15 +136,23 @@ const handlers = {
     row.getCell(RESULT_COLS.studyEnd).value = ctx.studyEnd ? `30.06.${ctx.studyEnd}` : '';
   },
 
-  educationProgram: (cell, row) => {
+  eduSpecialty: (cell, row, ctx) => {
     const match = String(cell.value ?? '').match(/^([\d.]+)\s+(.+)$/);
 
     if (!match) return;
 
     const [, code, name] = match;
 
+    ctx.specialty = name;
+
     row.getCell(RESULT_COLS.eduName).value = name;
     row.getCell(RESULT_COLS.eduCode).value = code;
+  },
+
+  eduProfile: (cell, row, ctx) => {
+    const eduProfile = String(cell.value ?? '').trim();
+
+    row.getCell(RESULT_COLS.eduProgram).value = eduProfile || ctx.specialty;
   },
 
   series: (cell, row, ctx) => {
@@ -207,6 +217,7 @@ export const createStudentExcel = async (file, fileName) => {
         snils: { fio: '', series: '', number: '' },
         studyBegin: '',
         studyEnd: '',
+        specialty: '',
       };
 
       for (const key in tandemDataKeys) {
