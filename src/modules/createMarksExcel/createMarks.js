@@ -6,54 +6,21 @@ import headers from './headers.json' with { type: 'json' };
 const connection = jmuConnection;
 
 const facultyEnum = Object.freeze({
-  95: 'ИЕН',
-  12: 'ИММОСПН',
+  // 95: 'ИЕН',
+  // 12: 'ИММОСПН',
   102: 'ИМХО',
-  21: 'ИПП',
-  27: 'ИПР',
-  33: 'ИФМОИОТ',
-  44: 'ИФВС',
-  111: 'ИФИСК',
-  54: 'Научный отдел',
-  109: 'Старобельский факультет',
+  // 21: 'ИПП',
+  // 27: 'ИПР',
+  // 33: 'ИФМОИОТ',
+  // 44: 'ИФВС',
+  // 111: 'ИФИСК',
+  // 54: 'Научный отдел',
+  // 109: 'Старобельский факультет',
 });
-
-// const baseSubjectControlsQuery = () => {
-//   return connection('plan_subjects_group as psg')
-//     .select(
-//       connection.raw(`jsonb_agg(
-//             jsonb_build_object(
-//                 'ministryCode', psg."ministryCode",
-//                 'subjectName', ps.name,
-//                 'course', psc.course,
-//                 'semester', psc.semester,
-//                 'hoursInCredit', psc.hours_in_credit,
-//                 'dateExam', psc.date_exam,
-//                 'formControl', pfc.name,
-//                 'teacher', (case
-//                   when person.id is not null
-//                     then concat(person.firstname, ' ', left(person.name, 1), '.', left(person.lastname, 1), '.')
-//                   else null
-//                   end),
-//                 'mark', sm.ball_5)
-//             order by psc.course::int, psc.semester::int)`),
-//     )
-//     .innerJoin('plan_subjects as ps', 'psg.id_subject', 'ps.id')
-//     .innerJoin('plan_subjects_control as psc', 'psg.id', 'psc.id_subject_group')
-//     .innerJoin('plan_form_control as pfc', 'pfc.id', 'psc.id_form_control')
-//     .leftOuterJoin('Persons as person', 'person.id', 'psc.idWorker')
-//     .innerJoin('students_marks as sm', function () {
-//       this.on('psc.id', 'sm.id_subject_control').andOn('sm.id_students_groups', 'sg.id');
-//     })
-//     .where('psg.countInPlan', true)
-//     .whereNotNull('sm.ball_100')
-//     .whereRaw(`ps.name !~* '.*Научно.*исследовательская.*работа'`)
-//     .whereRaw(`ps.name !~* '.*Выпускная.*квалификационная.*работа'`);
-// };
 
 const getStudentResearchWorkInfo = () => {
   return connection('plan_subjects_group as psg')
-    .select(
+    .first(
       connection.raw(`jsonb_build_object(
                 'subjectName', ps.name,
                 'dateExam', psc.date_exam,
@@ -73,13 +40,12 @@ const getStudentResearchWorkInfo = () => {
     })
     .where('psg.countInPlan', true)
     .whereNotNull('sm.ball_100')
-    .whereRaw(`ps.name ~* '.*Научно.*исследовательская.*работа'`)
-    .first();
+    .whereRaw(`ps.name ~* '.*Научно.*исследовательская.*работа'`);
 };
 
 const getStudentGraduationWorkInfo = () => {
   return connection('plan_subjects_group as psg')
-    .select(
+    .first(
       connection.raw(`jsonb_build_object(
                 'dateExam', psc.date_exam,
                 'mark', sm.ball_5)`),
@@ -91,8 +57,7 @@ const getStudentGraduationWorkInfo = () => {
     })
     .where('psg.countInPlan', true)
     .whereNotNull('sm.ball_5')
-    .whereRaw(`ps.name ~* '.*Выпускная.*квалификационная.*работа'`)
-    .first();
+    .whereRaw(`ps.name ~* '.*Выпускная.*квалификационная.*работа'`);
 };
 
 const getFacultyCourses = (idFaculty) => {
@@ -105,9 +70,25 @@ const getFacultyCourses = (idFaculty) => {
     .orderBy('course');
 };
 
-const getAllStudents = (idFaculty, course) => {
+const getStudentLastOrder = () => {
+  return connection('students_groups_orders as sgo')
+    .first(
+      connection.raw(`jsonb_build_object(
+      'name', o.name,
+      'date', o.date,
+      'idType', o.id_type_order,
+      'course', sgo.course)`),
+    )
+    .innerJoin('orders as o', 'o.id', 'sgo.id_order')
+    .whereIn('o.id_type_order', [1, 8, 9, 12, 7, 16])
+    .andWhereRaw(`sgo.id_students_groups = sg.id`)
+    .orderByRaw(`TO_DATE(o.date, 'dd.mm.yyyy') DESC`);
+};
+
+const baseQuery = (idFaculty) => {
   return connection('students_groups as sg')
     .select('s.id', 's.lastname', 's.firstname', 's.middlename', 'gr.course', 'gr.date_start', {
+      idGroup: 'gr.id',
       studentGroupId: 'sg.id',
       recordBook: 'sg.record_book',
       researchWork: getStudentResearchWorkInfo(),
@@ -116,29 +97,10 @@ const getAllStudents = (idFaculty, course) => {
       internSubjects: connection.raw(`sc."internSubjects"`),
       practices: connection.raw(`sc."practices"`),
       courseWorks: connection.raw(`sc."courseWorks"`),
-      lastOrder: connection.raw(`
-        (select jsonb_build_object('name', o.name, 'date', o.date, 'idType', o.id_type_order)
-        from education.students_groups_orders sgo
-        inner join education.orders o on o.id = sgo.id_order
-        where sgo.id_students_groups = sg.id
-        and o.id_type_order in (1, 8, 9, 12, 7, 16)
-        order by TO_DATE(o.date, 'dd.mm.yyyy') DESC
-        limit 1)`),
+      lastOrder: getStudentLastOrder(),
     })
     .innerJoin('students as s', 's.id', 'sg.id_student')
     .innerJoin('study_groups as gr', 'gr.id', 'sg.id_group')
-    .joinRaw(
-      `LEFT JOIN LATERAL (
-      SELECT jsonb_build_object('name', o.name, 'date', o.date, 'type', o.id_type_order) AS order_obj
-      FROM education.students_groups_orders sgo
-      JOIN education.orders o ON o.id = sgo.id_order
-      WHERE sgo.id_students_groups = sg.id
-        AND to_date(o.date, 'dd.mm.yyyy') > to_date(?, 'dd.mm.yyyy')
-      ORDER BY to_date(o.date, 'dd.mm.yyyy') DESC
-      LIMIT 1
-    ) lo ON TRUE`,
-      ['01.09.2025'],
-    )
     .joinRaw(
       `
   LEFT JOIN LATERAL (
@@ -248,19 +210,52 @@ const getAllStudents = (idFaculty, course) => {
   ) sc ON TRUE
 `,
     )
-    .whereIn('sg.status', [0, 1, 2, 5])
-    .andWhere(function () {
-      this.whereIn('sg.status', [0, 5]).orWhereNotNull('lo.order_obj');
-    })
     .andWhere('sc.has_any', true)
-    .andWhere('gr.closed', false)
-    .andWhere('gr.id_faculty', idFaculty)
-    .andWhere('gr.course', course)
+    .andWhere('gr.id_faculty', idFaculty);
+};
+
+const getDisabledStudents = (idFaculty, course) => {
+  return baseQuery(idFaculty)
+    .clone()
+    .select('lo.order_obj')
+    .joinRaw(
+      `LEFT JOIN LATERAL (
+      SELECT jsonb_build_object(
+        'name', o.name,
+        'date', o.date,
+        'type', o.id_type_order,
+        'course', sgo.course) AS order_obj
+      FROM education.students_groups_orders sgo
+      JOIN education.orders o ON o.id = sgo.id_order
+      WHERE sgo.id_students_groups = sg.id
+        AND to_date(o.date, 'dd.mm.yyyy') > DATE '2025-09-01'
+        and sgo.course = ?
+      ORDER BY to_date(o.date, 'dd.mm.yyyy') DESC
+      LIMIT 1
+    ) lo ON TRUE`,
+      [course],
+    )
+    .whereIn('sg.status', [1, 2, 5])
+    .whereNotNull('lo.order_obj');
+};
+
+const getActiveStudents = (idFaculty, course) => {
+  return baseQuery(idFaculty)
+    .clone()
+    .select(connection.raw('null as order_obj'))
+    .where('gr.course', course)
+    .andWhere('sg.status', 0)
+    .andWhere('gr.closed', false);
+};
+
+const getAllStudents = (idFaculty, course) => {
+  return getActiveStudents(idFaculty, course)
+    .unionAll(getDisabledStudents(idFaculty, course))
     .orderBy([
-      { column: 'gr.id', order: 'asc' },
-      { column: 's.lastname', order: 'asc' },
-      { column: 's.firstname', order: 'asc' },
-      { column: 's.middlename', order: 'asc' },
+      { column: 'idGroup', order: 'asc' },
+      { column: 'lastname', order: 'asc' },
+      { column: 'firstname', order: 'asc' },
+      { column: 'middlename', order: 'asc' },
     ]);
 };
 
@@ -404,6 +399,8 @@ const fillRows = (sheet, students, headers) => {
   for (const student of students) {
     const row = sheet.getRow(rowIndex);
 
+    if (student.id === 5796) console.log(student);
+
     parseStudentData(student);
 
     for (const header of headers) {
@@ -428,6 +425,10 @@ const fillRows = (sheet, students, headers) => {
 };
 
 const parseStudentData = (student) => {
+  if (student.order_obj) {
+    student.course = student.order_obj.course;
+  }
+
   student.internSubjects =
     student.internSubjects?.map((el) => {
       const { mark, subjectName, hoursInCredit, formControl, dateExam, course, teacher } = el;
@@ -534,8 +535,6 @@ const parseMark = (mark, formControl) => {
       4: 'хорошо',
       5: 'отлично',
     };
-
-    if (!objMark) console.log(mark, formControl);
 
     return objMark[mark];
   }
