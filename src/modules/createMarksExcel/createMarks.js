@@ -8,14 +8,14 @@ const connection = jmuConnection;
 const facultyEnum = Object.freeze({
   // 95: 'ИЕН',
   // 12: 'ИММОСПН',
-  102: 'ИМХО',
+  // 102: 'ИМХО',
   // 21: 'ИПП',
   // 27: 'ИПР',
   // 33: 'ИФМОИОТ',
   // 44: 'ИФВС',
   // 111: 'ИФИСК',
   // 54: 'Научный отдел',
-  // 109: 'Старобельский факультет',
+  109: 'Старобельский факультет',
 });
 
 const getStudentResearchWorkInfo = () => {
@@ -112,7 +112,7 @@ const baseQuery = (idFaculty) => {
             'subjectName', ps.name,
             'course', psc.course,
             'semester', psc.semester,
-            'hoursInCredit', psc.hours_in_credit,
+            'hoursInCredit', psw.total,
             'dateExam', psc.date_exam,
             'formControl', pfc.name,
             'teacher', CASE
@@ -134,7 +134,7 @@ const baseQuery = (idFaculty) => {
             'subjectName', ps.name,
             'course', psc.course,
             'semester', psc.semester,
-            'hoursInCredit', psc.hours_in_credit,
+            'hoursInCredit', psw.total,
             'dateExam', psc.date_exam,
             'formControl', pfc.name,
             'teacher', CASE
@@ -156,7 +156,7 @@ const baseQuery = (idFaculty) => {
             'subjectName', ps.name,
             'course', psc.course,
             'semester', psc.semester,
-            'hoursInCredit', psc.hours_in_credit,
+            'hoursInCredit', psw.total,
             'dateExam', psc.date_exam,
             'formControl', pfc.name,
             'teacher', CASE
@@ -178,7 +178,7 @@ const baseQuery = (idFaculty) => {
             'subjectName', ps.name,
             'course', psc.course,
             'semester', psc.semester,
-            'hoursInCredit', psc.hours_in_credit,
+            'hoursInCredit', psw.total,
             'dateExam', psc.date_exam,
             'formControl', pfc.name,
             'teacher', CASE
@@ -198,6 +198,7 @@ const baseQuery = (idFaculty) => {
     FROM plan_subjects_group as psg
     JOIN plan_subjects as ps ON psg.id_subject = ps.id
     JOIN plan_subjects_control as psc ON psg.id = psc.id_subject_group
+    JOIN plan_subjects_works as psw on psw.id_subject_control = psc.id
     JOIN plan_form_control as pfc ON pfc.id = psc.id_form_control
     LEFT JOIN "Persons" as person ON person.id = psc."idWorker"
     JOIN students_marks as sm
