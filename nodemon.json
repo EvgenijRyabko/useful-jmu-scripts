@@ -1,0 +1,7 @@
+{
+  "ignore": ["./data"],
+  "events": {
+    "start": "cls || clear",
+    "crash": "notify-send Nodemon 'App crashed'"
+  }
+}
