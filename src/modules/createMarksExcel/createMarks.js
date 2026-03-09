@@ -1,6 +1,6 @@
 import { jmuConnection } from '../../database/knexfile.js';
 import { ExcelTable } from '../../utils/excel.fileGenerator.js';
-import { defaultCell, headerStyle } from '../../utils/excel.styles.js';
+import { dangerCell, defaultCell, headerStyle } from '../../utils/excel.styles.js';
 import headers from './headers.json' with { type: 'json' };
 
 const connection = jmuConnection;
@@ -408,13 +408,22 @@ const fillRows = (sheet, students, headers) => {
       if (!student[header.code]) continue;
 
       if (!header.length) {
-        row.getCell(header.position).value = student[header.code] || '';
+        const obj = student[header.code];
+        const cell = row.getCell(header.position);
+
+        cell.value = obj?.value || obj;
+
+        if (obj?.isCorrect && obj.isCorrect === false) cell.style = dangerCell;
       } else {
         let colNumber = header.position;
 
         for (const obj of student[header.code]) {
-          row.getCell(colNumber).value = obj;
-          row.getCell(colNumber).alignment = { wrapText: true };
+          const cell = row.getCell(colNumber);
+
+          cell.value = obj?.value || obj;
+          cell.alignment = { wrapText: true };
+
+          if (!obj?.isCorrect) cell.style = dangerCell;
 
           colNumber += 1;
         }
@@ -433,25 +442,35 @@ const parseStudentData = (student) => {
   student.internSubjects =
     student.internSubjects?.map((el) => {
       const { mark, subjectName, hoursInCredit, formControl, dateExam, course, teacher } = el;
+      let isCorrect = true;
 
       const parsedMark = parseMark(mark, formControl);
       const studyYears = getStudyYears(student.date_start, course);
       const date = parseDate(dateExam);
 
-      if (!parseMark) console.log(mark);
+      if ([hoursInCredit, date, teacher].some((val) => !val)) isCorrect = false;
 
-      return `${subjectName}|${studyYears}|${hoursInCredit || 'ЗЕ'}|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`;
+      return {
+        value: `${subjectName}|${studyYears}|${hoursInCredit || 'ЗЕ'}|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`,
+        isCorrect,
+      };
     }) || [];
 
   student.optionalSubjects =
     student.optionalSubjects?.map((el) => {
       const { mark, subjectName, hoursInCredit, formControl, dateExam, course, teacher } = el;
+      let isCorrect = true;
 
       const parsedMark = parseMark(mark, formControl);
       const studyYears = getStudyYears(student.date_start, course);
       const date = parseDate(dateExam);
 
-      return `${subjectName}|${studyYears}|${hoursInCredit || 'ЗЕ'}|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`;
+      if ([hoursInCredit, date, teacher].some((val) => !val)) isCorrect = false;
+
+      return {
+        value: `${subjectName}|${studyYears}|${hoursInCredit || 'ЗЕ'}|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`,
+        isCorrect,
+      };
     }) || [];
 
   student.practices =
@@ -460,7 +479,10 @@ const parseStudentData = (student) => {
 
       const practiceType = getPracticeType(subjectName);
 
-      return `${practiceType}|МЕСТО_ПРАКТИКИ|${hoursInCredit || 'ЗЕ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`;
+      return {
+        value: `${practiceType}|МЕСТО_ПРАКТИКИ|${hoursInCredit || 'ЗЕ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`,
+        isCorrect: false,
+      };
     }) || [];
 
   student.courseWorks =
@@ -470,26 +492,41 @@ const parseStudentData = (student) => {
       const parsedMark = parseMark(mark, formControl);
       const date = parseDate(dateExam);
 
-      return `${subjectName}|ТЕМА_КР|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`;
+      return {
+        value: `${subjectName}|ТЕМА_КР|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`,
+        isCorrect: false,
+      };
     }) || [];
 
   const haveResearchWork = student.researchWork && student.researchWork.mark;
   const haveGraduationWork = student.graduationWork && student.graduationWork.mark;
 
   if (haveResearchWork) {
-    student.researchWorkType = 'ВИД_НИРа';
+    student.researchWorkType = { value: 'ВИД_НИРа', isCorrect: false };
     student.researchWorkMark = student.researchWork.mark;
-    student.researchWorkDate = parseDate(student.researchWork.dateExam) || 'ДАТА_АТТЕСТАЦИИ';
-    student.researchWorkTeacher = student.researchWork.teacher || 'ПРЕПОДАВАТЕЛЬ';
+
+    const date = parseDate(student.researchWork.dateExam);
+    const teacher = student.researchWork.teacher;
+
+    student.researchWorkDate = { value: date || 'ДАТА_АТТЕСТАЦИИ', isCorrect: date ? true : false };
+    student.researchWorkTeacher = {
+      value: teacher || 'ПРЕПОДАВАТЕЛЬ',
+      isCorrect: teacher ? true : false,
+    };
   }
 
   if (haveGraduationWork) {
-    student.graduationWorkType = 'ВКР';
-    student.graduationWorkTopic = 'ТЕМА_ВКР';
-    student.graduationWorkDate = parseDate(student.graduationWork.dateExam) || 'ДАТА_АТТЕСТАЦИИ';
+    const date = parseDate(student.graduationWork.dateExam);
+
+    student.graduationWorkType = { value: 'ВКР', isCorrect: false };
+    student.graduationWorkTopic = { value: 'ТЕМА_ВКР', isCorrect: false };
+    student.graduationWorkDate = {
+      value: date || 'ДАТА_АТТЕСТАЦИИ',
+      isCorrect: date ? true : false,
+    };
     student.graduationWorkMark = student.graduationWork.mark;
-    student.graduationWorkProtocol = 'НОМЕР_ПРОТОКОЛА';
-    student.graduationWorkProtocolDate = 'ДАТА_ПРОТОКОЛА';
+    student.graduationWorkProtocol = { value: 'НОМЕР_ПРОТОКОЛА', isCorrect: false };
+    student.graduationWorkProtocolDate = { value: 'ДАТА_ПРОТОКОЛА', isCorrect: false };
   }
 
   const studentOrder = student.lastOrder;

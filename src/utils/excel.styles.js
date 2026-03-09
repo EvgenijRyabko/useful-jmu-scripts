@@ -73,7 +73,7 @@ export const dangerCell = {
   ...defaultCell,
   font: {
     bold: true,
-    color: { argb: 'FFFFFFFF' },
+    color: { argb: '9c0006' },
   },
-  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'ff0000' } },
+  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'ffc7ce' } },
 };
