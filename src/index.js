@@ -3,6 +3,7 @@ import multer from 'multer';
 
 import { abtConnection, jmuConnection, jmuLocalConnection } from './database/knexfile.js';
 import { parsePsyhoResults } from './modules/addStudentCriticalPsyho/addStudentCriticalPsyho.js';
+import { addStudentGirUuid } from './modules/addStudentGirUuid/addStudentGirUuid.js';
 import { createMarksExcel } from './modules/createMarksExcel/createMarks.js';
 import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitaryExcel.js';
 import { createStudentExcel } from './modules/createStudentExcel/createStudentExcel.js';
@@ -74,6 +75,20 @@ app.post('/createMarksExcel', async (req, res) => {
     await createMarksExcel();
 
     res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/addStudentGirUuid', upload.single('file'), async (req, res) => {
+  try {
+    const dataFile = req.file;
+
+    if (!dataFile) res.status(400).send('Отсутствует файл!');
+
+    const total = await addStudentGirUuid(dataFile);
+
+    res.status(200).send({ total });
   } catch (err) {
     res.status(500).send(err?.message || err);
   }
