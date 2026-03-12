@@ -8,14 +8,14 @@ const connection = jmuConnection;
 const facultyEnum = Object.freeze({
   // 95: 'ИЕН',
   // 12: 'ИММОСПН',
-  // 102: 'ИМХО',
+  102: 'ИМХО',
   // 21: 'ИПП',
   // 27: 'ИПР',
   // 33: 'ИФМОИОТ',
   // 44: 'ИФВС',
   // 111: 'ИФИСК',
   // 54: 'Научный отдел',
-  109: 'Старобельский факультет',
+  // 109: 'Старобельский факультет',
 });
 
 const getStudentResearchWorkInfo = () => {
@@ -91,6 +91,7 @@ const baseQuery = (idFaculty) => {
       idGroup: 'gr.id',
       studentGroupId: 'sg.id',
       recordBook: 'sg.record_book',
+      girUid: 'sg.gir_uuid',
       researchWork: getStudentResearchWorkInfo(),
       graduationWork: getStudentGraduationWorkInfo(),
       optionalSubjects: connection.raw(`sc."optionalSubjects"`),

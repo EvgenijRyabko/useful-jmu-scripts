@@ -2,9 +2,9 @@ import xlsx from 'exceljs';
 import { access, mkdir, writeFile } from 'fs/promises';
 import { Readable } from 'stream';
 
-import { jmuLocalConnection } from '../../database/knexfile.js';
+import { jmuConnection, jmuLocalConnection } from '../../database/knexfile.js';
 
-const connection = jmuLocalConnection;
+const connection = jmuConnection;
 
 const checkDirectory = async (path) => {
   try {

@@ -2,7 +2,7 @@
   {
     "name": "UID студенческого билета",
     "required": true,
-    "code": "UID",
+    "code": "girUid",
     "position": 1
   },
   {
