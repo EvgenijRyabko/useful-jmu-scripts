@@ -18,31 +18,6 @@ const facultyEnum = Object.freeze({
   // 109: 'Старобельский факультет',
 });
 
-const getStudentResearchWorkInfo = () => {
-  return connection('plan_subjects_group as psg')
-    .first(
-      connection.raw(`jsonb_build_object(
-                'subjectName', ps.name,
-                'dateExam', psc.date_exam,
-                'teacher', (case 
-                  when person.id is not null
-                    then concat(person.firstname, ' ', left(person.name, 1), '.', left(person.lastname, 1), '.')
-                  else null
-                  end),
-                'mark', sm.ball_100)`),
-    )
-    .innerJoin('plan_subjects as ps', 'psg.id_subject', 'ps.id')
-    .innerJoin('plan_subjects_control as psc', 'psg.id', 'psc.id_subject_group')
-    .innerJoin('plan_form_control as pfc', 'pfc.id', 'psc.id_form_control')
-    .leftOuterJoin('Persons as person', 'person.id', 'psc.idWorker')
-    .innerJoin('students_marks as sm', function () {
-      this.on('psc.id', 'sm.id_subject_control').andOn('sm.id_students_groups', 'sg.id');
-    })
-    .where('psg.countInPlan', true)
-    .whereNotNull('sm.ball_100')
-    .whereRaw(`ps.name ~* '.*Научно.*исследовательская.*работа'`);
-};
-
 const getStudentGraduationWorkInfo = () => {
   return connection('plan_subjects_group as psg')
     .first(
@@ -92,8 +67,8 @@ const baseQuery = (idFaculty) => {
       studentGroupId: 'sg.id',
       recordBook: 'sg.record_book',
       girUid: 'sg.gir_uuid',
-      researchWork: getStudentResearchWorkInfo(),
       graduationWork: getStudentGraduationWorkInfo(),
+      researchWorks: connection.raw(`sc."researchWorks"`),
       optionalSubjects: connection.raw(`sc."optionalSubjects"`),
       internSubjects: connection.raw(`sc."internSubjects"`),
       practices: connection.raw(`sc."practices"`),
@@ -106,6 +81,24 @@ const baseQuery = (idFaculty) => {
       `
   LEFT JOIN LATERAL (
     SELECT
+      COALESCE(
+        jsonb_agg(
+          jsonb_build_object(
+            'subjectName', ps.name,
+            'dateExam', psc.date_exam,
+            'formControl', pfc.name,
+            'teacher', CASE
+              WHEN person.id IS NOT NULL
+                THEN concat(person.firstname, ' ', left(person.name, 1), '.', left(person.lastname, 1), '.')
+              ELSE NULL
+            END,
+            'mark', sm.ball_5
+          )
+          ORDER BY psc.course::int, psc.semester::int
+        ) FILTER (WHERE ps.name ~* '.*Научно.*исследовательская.*работа'),
+        '[]'::jsonb
+      ) AS "researchWorks",
+
       COALESCE(
         jsonb_agg(
           jsonb_build_object(
@@ -146,7 +139,8 @@ const baseQuery = (idFaculty) => {
             'mark', sm.ball_5
           )
           ORDER BY psc.course::int, psc.semester::int
-        ) FILTER (WHERE psg."ministryCode" !~* '(ФТД|ФД).(\\\\d{2}).' AND psc.id_subject_control_tag IS NULL),
+        ) FILTER (WHERE psg."ministryCode" !~* '(ФТД|ФД).(\\\\d{2}).' AND psc.id_subject_control_tag IS NULL
+          AND ps.name !~* '.*Научно.*исследовательская.*работа'),
         '[]'::jsonb
       ) AS "internSubjects",
 
@@ -207,7 +201,6 @@ const baseQuery = (idFaculty) => {
      AND sm.id_students_groups = sg.id
     WHERE psg."countInPlan" = true
       AND sm.ball_100 IS NOT NULL
-      AND ps.name !~* '.*Научно.*исследовательская.*работа'
       AND ps.name !~* '.*Выпускная.*квалификационная.*работа'
   ) sc ON TRUE
 `,
@@ -305,6 +298,7 @@ const createFacultyExcel = async (idFaculty) => {
           return prev;
         },
         {
+          researchWorks: 0,
           optionalSubjects: 0,
           internSubjects: 0,
           practices: 0,
@@ -401,8 +395,6 @@ const fillRows = (sheet, students, headers) => {
   for (const student of students) {
     const row = sheet.getRow(rowIndex);
 
-    if (student.id === 5796) console.log(student);
-
     parseStudentData(student);
 
     for (const header of headers) {
@@ -439,6 +431,22 @@ const parseStudentData = (student) => {
   if (student.order_obj) {
     student.course = student.order_obj.course;
   }
+
+  student.researchWorks =
+    student.researchWorks?.map((el) => {
+      const { mark, dateExam, teacher, formControl } = el;
+      let isCorrect = true;
+
+      const parsedMark = parseMark(mark, formControl);
+      const date = parseDate(dateExam);
+
+      if ([date, teacher].some((val) => !val)) isCorrect = false;
+
+      return {
+        value: `Научно-исследовательская работа|${parsedMark}|${date || 'ДАТА_АТТЕСТАЦИИ'}|${teacher || 'ПРЕПОДАВАТЕЛЬ'}`,
+        isCorrect,
+      };
+    }) || [];
 
   student.internSubjects =
     student.internSubjects?.map((el) => {
@@ -499,22 +507,7 @@ const parseStudentData = (student) => {
       };
     }) || [];
 
-  const haveResearchWork = student.researchWork && student.researchWork.mark;
   const haveGraduationWork = student.graduationWork && student.graduationWork.mark;
-
-  if (haveResearchWork) {
-    student.researchWorkType = { value: 'ВИД_НИРа', isCorrect: false };
-    student.researchWorkMark = student.researchWork.mark;
-
-    const date = parseDate(student.researchWork.dateExam);
-    const teacher = student.researchWork.teacher;
-
-    student.researchWorkDate = { value: date || 'ДАТА_АТТЕСТАЦИИ', isCorrect: date ? true : false };
-    student.researchWorkTeacher = {
-      value: teacher || 'ПРЕПОДАВАТЕЛЬ',
-      isCorrect: teacher ? true : false,
-    };
-  }
 
   if (haveGraduationWork) {
     const date = parseDate(student.graduationWork.dateExam);

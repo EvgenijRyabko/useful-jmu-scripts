@@ -33,16 +33,18 @@ export const addStudentGirUuid = async (file) => {
 
   const dataTable = new xlsx.Workbook();
 
-  const dataSheet = await dataTable.csv.read(Readable.from(file.buffer.toString()));
+  const dataSheet = await dataTable.xlsx.load(file.buffer);
+  // const dataSheet = await dataTable.csv.read(Readable.from(file.buffer.toString()));
 
   const trx = await connection.transaction();
 
   try {
     let counter = 0;
-    const lastRowNumber = dataSheet.lastRow.number;
+    const sheet = dataSheet.worksheets[0];
+    const lastRowNumber = sheet.lastRow.number;
 
     for (let i = 2; i <= lastRowNumber; i++) {
-      const row = dataSheet.getRow(i);
+      const row = sheet.getRow(i);
 
       const recordBook = row.getCell(7).value;
       const snilsNumber = row.getCell(6).value;
