@@ -6,6 +6,7 @@ import {
   genderList,
   levelCodeList,
   levelList,
+  oksmList,
   placesList,
   russiaDocumentTypeList,
 } from '../templateLists/index.js';
@@ -165,6 +166,11 @@ export const headers = [
     position: 25,
     name: 'Гражданство (код страны по ОКСМ)',
     required: true,
+    dataValidation: {
+      type: 'list',
+      allowBlank: true,
+      formulae: [`"${oksmList.join(',')}"`],
+    },
   },
   {
     position: 26,

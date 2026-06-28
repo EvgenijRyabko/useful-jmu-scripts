@@ -16,8 +16,6 @@ const reportDataKeys = {
   group: 39,
   enrollDate: 40,
   enrollOrder: 42,
-  deductDate: 22,
-  graduationDate: 21,
 };
 
 const RESULT_COLS = {
@@ -25,6 +23,8 @@ const RESULT_COLS = {
   firstname: 2,
   middlename: 3,
   birthday: 8,
+  otherIssued: 19,
+  otherValid: 18,
   documentRussia: 10,
   russiaIssuedDate: 13,
   russiaSeries: 11,
@@ -48,9 +48,16 @@ const RESULT_COLS = {
   studyBegin: 36,
   studyEnd: 50,
   studyPeriod2: 43,
+  hasFirstVO: 46,
+  hasScholarship: 47,
+  hasTransfer: 48,
+  hasAcadem: 49,
+  citizenshipOSKM: 25,
   financing: 44,
   typePlaces: 45,
   sendToGir: 61,
+  finalDate: 54,
+  finalOrderDate: 55,
 };
 
 /**
@@ -181,7 +188,7 @@ const handlers = {
 
     fillCell(row.getCell(RESULT_COLS.birthday), {
       value: cell.value,
-      style: requiredCell,
+      style: cell.value ? requiredCell : dangerCell,
     });
 
     ctx.age = age;
@@ -200,7 +207,7 @@ const handlers = {
     });
   },
 
-  qualification: (cell, row) => {
+  qualification: (cell, row, ctx) => {
     const qualification = String(cell.value) || '';
 
     for (const key in levelObj) {
@@ -219,6 +226,8 @@ const handlers = {
           dataValidation: getValidationByHeader('Код уровня образования'),
         });
 
+        if (['11', '12'].includes(levelCodeObj[key])) ctx.hasFirstVO = true;
+
         break;
       }
     }
@@ -233,15 +242,15 @@ const handlers = {
 
     fillCell(row.getCell(RESULT_COLS.enrollOrderDate1), {
       value: cell.value,
-      style: requiredCell,
+      style: cell.value ? requiredCell : dangerCell,
     });
     fillCell(row.getCell(RESULT_COLS.enrollOrderDate2), {
       value: cell.value,
-      style: requiredCell,
+      style: cell.value ? requiredCell : dangerCell,
     });
     fillCell(row.getCell(RESULT_COLS.studyBegin), {
       value: ctx.studyBegin ? `01.09.${ctx.studyBegin}` : '',
-      style: requiredCell,
+      style: ctx.studyBegin ? requiredCell : dangerCell,
     });
   },
 
@@ -273,7 +282,7 @@ const handlers = {
     });
     fillCell(row.getCell(RESULT_COLS.studyEnd), {
       value: ctx.studyEnd ? `30.06.${ctx.studyEnd}` : '',
-      style: requiredCell,
+      style: ctx.studyEnd ? requiredCell : dangerCell,
     });
   },
 
@@ -351,13 +360,28 @@ const handlers = {
     else otherCell.value = cell.value;
   },
 
-  financing: (cell, row) => {
-    const value = cell.value;
+  issued: (cell, row, ctx) => {
+    const otherCell = row.getCell(RESULT_COLS.otherIssued);
+
+    otherCell.style = defaultCell;
+
+    if (!ctx.isRussian) otherCell.value = cell.value;
+  },
+
+  documentValid: (cell, row, ctx) => {
+    const otherCell = row.getCell(RESULT_COLS.otherValid);
+
+    otherCell.style = defaultCell;
+
+    if (!ctx.isRussian) otherCell.value = cell.value;
+  },
+
+  financing: (cell, row, ctx) => {
     const financingCell = row.getCell(RESULT_COLS.financing);
 
-    const financingValue = value ? 'Федеральный бюджет' : 'За счет средств физических лиц';
+    const financingValue = ctx.isBudget ? 'Федеральный бюджет' : 'За счет средств физических лиц';
 
-    console.log(value, financingValue);
+    if (cell.value) ctx.hasFinancing = true;
 
     fillCell(financingCell, {
       value: financingValue,
@@ -366,12 +390,14 @@ const handlers = {
     });
   },
 
-  learningType: (cell, row) => {
+  learningType: (cell, row, ctx) => {
     const value = cell.value;
     const learningCell = row.getCell(RESULT_COLS.typePlaces);
 
     const learningValue =
       value.toLowerCase() === 'бюджет' ? 'Основные места в рамках КЦП' : 'Платные места';
+
+    ctx.isBudget = value.toLowerCase() === 'бюджет' ? true : false;
 
     fillCell(learningCell, {
       value: learningValue,
@@ -402,9 +428,17 @@ const handlers = {
     });
   },
 
-  deductDate: (cell, row, ctx) => {},
+  deductDate: (cell, row, ctx) => {
+    if (cell.value && !ctx.finalOrderDate) {
+      ctx.finalOrderDate = cell.value;
+    }
+  },
 
-  graduationDate: (cell, row, ctx) => {},
+  graduationDate: (cell, row, ctx) => {
+    if (cell.value) {
+      ctx.finalOrderDate = cell.value;
+    }
+  },
 };
 
 const makeSnilsKey = (fio, series, number) => `${fio}_${series}/${number}`;
@@ -470,7 +504,11 @@ export const createStudentExcel = async (file, fileName) => {
 
       const ctx = {
         snils: { fio: '', series: '', number: '' },
+        finalOrderDate: '',
+        hasFirstVO: false,
         isRussian: false,
+        isBudget: false,
+        hasFinancing: false,
         age: undefined,
         gender: undefined,
         studyBegin: '',
@@ -516,6 +554,40 @@ export const createStudentExcel = async (file, fileName) => {
       fillCell(resultRow.getCell(RESULT_COLS.studyYear), {
         value: 2026,
         style: requiredCell,
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.hasFirstVO), {
+        value: ctx.hasFirstVO ? 'Да' : 'Нет',
+        style: requiredCell,
+        dataValidation: getValidationByHeader('Наличие первого высшего образования'),
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.hasScholarship), {
+        value: ctx.hasFinancing ? 'Да' : 'Нет',
+        style: requiredCell,
+        dataValidation: getValidationByHeader('Наличие стипендий или иных выплат'),
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.hasTransfer), {
+        value: 'Нет',
+        style: requiredCell,
+        dataValidation: getValidationByHeader('Наличие перевода/переводов'),
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.hasAcadem), {
+        value: 'Нет',
+        style: requiredCell,
+        dataValidation: getValidationByHeader(
+          'Наличие академа/академов (включая отпуск по уходу за ребенком)',
+        ),
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.citizenshipOSKM), {
+        value: ctx.isRussian ? 643 : '',
+        style: ctx.isRussian ? requiredCell : dangerCell,
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.finalDate), {
+        value: ctx.finalOrderDate,
+        style: defaultCell,
+      });
+      fillCell(resultRow.getCell(RESULT_COLS.finalOrderDate), {
+        value: ctx.finalOrderDate,
+        style: defaultCell,
       });
 
       // Если header не был включен в список заполняемых значений - подставляем в ячейку стиль

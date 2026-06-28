@@ -70,6 +70,16 @@ export const tandemDataKeys = {
     required: true,
     listName: 'Персоны',
   },
+  documentValid: {
+    name: 'Срок действия УЛ',
+    required: false,
+    listName: 'Персоны',
+  },
+  issued: {
+    name: 'Кем выдано УЛ',
+    required: false,
+    listName: 'Персоны',
+  },
   snils: {
     name: 'СНИЛС',
     required: true,
@@ -130,13 +140,13 @@ export const tandemDataKeys = {
     required: true,
     listName: 'Обучающиеся',
   },
-  financing: {
-    name: 'Уровень бюджетного финансирования',
+  learningType: {
+    name: 'Вид затрат',
     required: true,
     listName: 'Обучающиеся',
   },
-  learningType: {
-    name: 'Вид затрат',
+  financing: {
+    name: 'Уровень бюджетного финансирования',
     required: true,
     listName: 'Обучающиеся',
   },
