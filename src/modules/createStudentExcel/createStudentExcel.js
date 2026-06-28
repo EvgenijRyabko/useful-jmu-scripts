@@ -1,6 +1,6 @@
 import { ExcelTable } from '../../utils/excel.fileGenerator.js';
 import { headerStyle } from '../../utils/excel.styles.js';
-import headers from './headers.json' with { type: 'json' };
+import headers from './headers.js' with { type: 'json' };
 
 const tandemDataKeys = {
   fio: 2,

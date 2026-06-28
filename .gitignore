@@ -4,4 +4,8 @@ node_modules
 
 data
 
+src/modules/getCathedralsFromExcel/files
+
+result.json
+
 data.json

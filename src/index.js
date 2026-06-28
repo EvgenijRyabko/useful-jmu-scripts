@@ -9,11 +9,13 @@ import { createMilitaryExcel } from './modules/createMilitaryExcel/createMilitar
 import { createStudentExcel } from './modules/createStudentExcel/createStudentExcel.js';
 import { getStudentSummary } from './modules/createStudentSummary/createStudentSummary.js';
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
+import { parseCathedralFiles } from './modules/getCathedralsFromExcel/index.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
 import { parseSkudNewTable } from './modules/parseSkudNewTable/parseSkudNewTable.js';
 import { parseStudentHistory } from './modules/parseStudentHistory/parseStudentHistory.js';
 import { parseMethodic } from './modules/processMethodicFour/processMethodic.js';
 import { removeStudentCritical } from './modules/removeStudentCriticalPsyho/removeStudentCriticalPsyho.js';
+import { transferGroup } from './modules/transferGroup/transferGroup.js';
 import { checkConnection } from './utils/checkConnection.js';
 
 const app = express();
@@ -179,6 +181,59 @@ app.post('/parseSkudNewTable', async (req, res) => {
 app.post('/parseStudentHistory', async (req, res) => {
   try {
     await parseStudentHistory();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/transferGroup', async (req, res) => {
+  const groups = [
+    // // Культ обр. ФМХО -> ИФиСК || 44.03.01 и 44.04.01
+    // { from: 1368, to: 1448 },
+    // { from: 1152, to: 1449 },
+    // { from: 797, to: 1450 },
+    // { from: 1367, to: 1452 },
+    // { from: 1153, to: 1453 },
+    // { from: 799, to: 1454 },
+    // { from: 1378, to: 1456 },
+    // { from: 1381, to: 1457 },
+    // // ИЗО. ФМХО -> ИППиИМХО || 44.03.01 и 44.04.01
+    // { from: 1369, to: 1458 },
+    { from: 1154, to: 1462 },
+    // { from: 795, to: 1466 },
+    // { from: 1380, to: 1470 },
+    // // Доп Обр. ФМХО -> ИППиИМХО || 44.03.01 и 44.04.01
+    // { from: 1365, to: 1459 },
+    // { from: 1150, to: 1463 },
+    // { from: 798, to: 1467 },
+    // { from: 1377, to: 1471 },
+    // // Муз Обр. ФМХО -> ИППиИМХО || 44.03.01 и 44.04.01
+    // { from: 1366, to: 1460 },
+    // { from: 1155, to: 1464 },
+    // { from: 794, to: 1468 },
+    // { from: 1379, to: 1472 },
+    // // ТХОМ. ФМХО -> ИППиИМХО || 44.03.04
+    // { from: 1364, to: 1461 },
+    // { from: 1151, to: 1465 },
+    // { from: 796, to: 1469 },
+  ];
+
+  try {
+    for (const group of groups) {
+      await transferGroup(group.from, group.to, 7316);
+    }
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/getCathedralsFromExcel', async (req, res) => {
+  try {
+    await parseCathedralFiles();
 
     res.status(200).send('Ok');
   } catch (err) {

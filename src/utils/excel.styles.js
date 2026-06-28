@@ -77,3 +77,19 @@ export const dangerCell = {
   },
   fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'ffc7ce' } },
 };
+
+/**
+ * @type {import('exceljs').Style}
+ */
+export const requiredHeader = {
+  ...headerStyle,
+  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'fffcd5b4' } },
+};
+
+/**
+ * @type {import('exceljs').Style}
+ */
+export const requiredCell = {
+  ...defaultCell,
+  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'fffcd5b4' } },
+};
