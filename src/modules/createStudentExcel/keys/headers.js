@@ -8,7 +8,7 @@ import {
   levelList,
   placesList,
   russiaDocumentTypeList,
-} from './templateLists';
+} from '../templateLists/index.js';
 
 /**
  * @type {{
@@ -61,7 +61,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: genderList.join(','),
+      formulae: [`"${genderList.join(',')}"`],
     },
   },
   {
@@ -82,7 +82,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: true,
-      formulae: russiaDocumentTypeList.join(','),
+      formulae: [`"${russiaDocumentTypeList.join(',')}"`],
     },
   },
   {
@@ -173,7 +173,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: levelList.join(','),
+      formulae: [`"${levelList.join(',')}"`],
     },
   },
   {
@@ -183,7 +183,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: levelCodeList.join(','),
+      formulae: [`"${levelCodeList.join(',')}"`],
     },
   },
   {
@@ -204,7 +204,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: courseList.join(','),
+      formulae: [`"${courseList.join(',')}"`],
     },
   },
   {
@@ -251,7 +251,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: educationFormList.join(','),
+      formulae: [`"${educationFormList.join(',')}"`],
     },
   },
   {
@@ -288,7 +288,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: financingList.join(','),
+      formulae: [`"${financingList.join(',')}"`],
     },
   },
   {
@@ -298,7 +298,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: placesList.join(','),
+      formulae: [`"${placesList.join(',')}"`],
     },
   },
   {
@@ -308,7 +308,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: 'Да,Нет',
+      formulae: ['"Да,Нет"'],
     },
   },
   {
@@ -318,7 +318,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: 'Да,Нет',
+      formulae: ['"Да,Нет"'],
     },
   },
   {
@@ -328,7 +328,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: 'Да,Нет',
+      formulae: ['"Да,Нет"'],
     },
   },
   {
@@ -338,7 +338,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: false,
-      formulae: 'Да,Нет',
+      formulae: ['"Да,Нет"'],
     },
   },
   {
@@ -398,7 +398,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: true,
-      formulae: 'Да,Нет',
+      formulae: ['"Да,Нет"'],
     },
   },
   {
@@ -420,7 +420,7 @@ export const headers = [
     dataValidation: {
       type: 'list',
       allowBlank: true,
-      formulae: 'Да',
+      formulae: ['"Да"'],
     },
   },
   {

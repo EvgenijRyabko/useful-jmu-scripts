@@ -86,6 +86,14 @@ export const requiredHeader = {
   fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'fffcd5b4' } },
 };
 
+export const defaultHeader = {
+  ...defaultCell,
+  font: {
+    bold: true,
+    color: { argb: 'FF000000' },
+  },
+};
+
 /**
  * @type {import('exceljs').Style}
  */
