@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 
 import { abtConnection, jmuConnection, jmuLocalConnection } from './database/knexfile.js';
+import { addCitizenshipToTable } from './modules/addCitizenship/addCitizenship.js';
 import { parsePsyhoResults } from './modules/addStudentCriticalPsyho/addStudentCriticalPsyho.js';
 import { addStudentGirUuid } from './modules/addStudentGirUuid/addStudentGirUuid.js';
 import { createMarksExcel } from './modules/createMarksExcel/createMarks.js';
@@ -201,7 +202,7 @@ app.post('/transferGroup', async (req, res) => {
     // { from: 1381, to: 1457 },
     // // ИЗО. ФМХО -> ИППиИМХО || 44.03.01 и 44.04.01
     // { from: 1369, to: 1458 },
-    { from: 1154, to: 1462 },
+    // { from: 1154, to: 1462 },
     // { from: 795, to: 1466 },
     // { from: 1380, to: 1470 },
     // // Доп Обр. ФМХО -> ИППиИМХО || 44.03.01 и 44.04.01
@@ -218,11 +219,16 @@ app.post('/transferGroup', async (req, res) => {
     // { from: 1364, to: 1461 },
     // { from: 1151, to: 1465 },
     // { from: 796, to: 1469 },
+    // БЖД, ИФМОИОТ > ИФВС || 44.03.04
+    // { from: 1308, to: 1473 },
+    // { from: 1205, to: 1475 },
+    // { from: 767, to: 1476 },
+    { from: 1398, to: 1478 },
   ];
 
   try {
     for (const group of groups) {
-      await transferGroup(group.from, group.to, 7316);
+      await transferGroup(group.from, group.to, 7365);
     }
 
     res.status(200).send('Ok');
@@ -234,6 +240,16 @@ app.post('/transferGroup', async (req, res) => {
 app.post('/getCathedralsFromExcel', async (req, res) => {
   try {
     await parseCathedralFiles();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/addCitizenship', async (req, res) => {
+  try {
+    await addCitizenshipToTable();
 
     res.status(200).send('Ok');
   } catch (err) {

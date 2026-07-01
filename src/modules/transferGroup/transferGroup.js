@@ -153,22 +153,22 @@ export const transferGroup = async (idGroupFrom, idGroupTo, idOrder) => {
 
     console.log(`Шаг 2. === Копирование данных в новую группу ===`);
     for (const studentGroup of studentsGroups) {
-      // const [{ id: newStudentGroupId }] = await createNewStudentsGroups(
-      //   trx,
-      //   studentGroup,
-      //   idGroupTo,
-      // );
+      const [{ id: newStudentGroupId }] = await createNewStudentsGroups(
+        trx,
+        studentGroup,
+        idGroupTo,
+      );
 
-      // await updateOldStudentGroup(trx, studentGroup.id);
-      // await updateOldGroup(trx, idGroupFrom);
-      // await updateNewGroup(trx, idGroupTo);
-      // await createStudentGroupOrder(trx, idOrder, newStudentGroupId);
+      await updateOldStudentGroup(trx, studentGroup.id);
+      await updateOldGroup(trx, idGroupFrom);
+      await updateNewGroup(trx, idGroupTo);
+      await createStudentGroupOrder(trx, idOrder, newStudentGroupId);
 
-      const newStudentGroup = await getStudentGroup(idGroupTo, studentGroup.id_student);
+      // const newStudentGroup = await getStudentGroup(idGroupTo, studentGroup.id_student);
 
       await sgIds.push({
         oldId: studentGroup.id,
-        newId: newStudentGroup.id,
+        newId: newStudentGroupId,
       });
     }
 

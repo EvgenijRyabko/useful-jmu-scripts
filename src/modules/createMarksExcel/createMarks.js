@@ -6,16 +6,16 @@ import headers from './headers.json' with { type: 'json' };
 const connection = jmuConnection;
 
 const facultyEnum = Object.freeze({
-  // 95: 'ИЕН',
-  // 12: 'ИММОСПН',
+  95: 'ИЕН',
+  12: 'ИММОСПН',
   102: 'ИМХО',
-  // 21: 'ИПП',
-  // 27: 'ИПР',
-  // 33: 'ИФМОИОТ',
-  // 44: 'ИФВС',
-  // 111: 'ИФИСК',
-  // 54: 'Научный отдел',
-  // 109: 'Старобельский факультет',
+  21: 'ИПП',
+  27: 'ИПР',
+  33: 'ИФМОИОТ',
+  44: 'ИФВС',
+  111: 'ИФИСК',
+  54: 'Научный отдел',
+  109: 'Старобельский факультет',
 });
 
 const getStudentGraduationWorkInfo = () => {
@@ -256,6 +256,8 @@ const getAllStudents = (idFaculty, course) => {
 
 export const createMarksExcel = async () => {
   let result;
+
+  console.log(`Starting generation...`);
 
   for (const key in facultyEnum) {
     const fileResults = await createFacultyExcel(key);
