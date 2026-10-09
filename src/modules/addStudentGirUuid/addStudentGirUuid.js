@@ -33,8 +33,7 @@ export const addStudentGirUuid = async (file) => {
 
   const dataTable = new xlsx.Workbook();
 
-  const dataSheet = await dataTable.xlsx.load(file.buffer);
-  // const dataSheet = await dataTable.csv.read(Readable.from(file.buffer.toString()));
+  const dataSheet = await dataTable.csv.read(Readable.from(file.buffer.toString()));
 
   const trx = await connection.transaction();
 

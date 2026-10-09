@@ -12,8 +12,11 @@ import { getStudentSummary } from './modules/createStudentSummary/createStudentS
 import { fillStudentsHostelInfo } from './modules/fillStudentsHostel/fillStudentsHostelInfo.js';
 import { parseCathedralFiles } from './modules/getCathedralsFromExcel/index.js';
 import { parseRelations } from './modules/insertTypeRelation/insertTypeRelation.js';
+import { parseEios } from './modules/parseEios/parseEios.js';
+import { parseFunding } from './modules/parseFunding/parseFunding.service.js';
 import { parseSkudNewTable } from './modules/parseSkudNewTable/parseSkudNewTable.js';
 import { parseStudentHistory } from './modules/parseStudentHistory/parseStudentHistory.js';
+import { parseAllMarksFiles } from './modules/parseStudentMarks/index.js';
 import { parseMethodic } from './modules/processMethodicFour/processMethodic.js';
 import { removeStudentCritical } from './modules/removeStudentCriticalPsyho/removeStudentCriticalPsyho.js';
 import { transferGroup } from './modules/transferGroup/transferGroup.js';
@@ -36,13 +39,15 @@ app.post('/parseRelations', async (req, res) => {
 });
 
 app.post('/createStudentSummary', async (req, res) => {
+  console.log(req.body);
+
   const { idForm, yearAdmission } = req.body;
   const pIdForm = Number(idForm);
   const pYearAdmission = String(yearAdmission);
 
-  if (!pIdForm) res.status(400).send('idForm was not provided!');
+  if (!pIdForm) return res.status(400).send('idForm was not provided!');
   if (!pYearAdmission || !/^\d{4}$/.test(pYearAdmission))
-    res.status(400).send('yearAdmission is not provided or failed validation!');
+    return res.status(400).send('yearAdmission is not provided or failed validation!');
 
   try {
     await getStudentSummary(pYearAdmission, pIdForm);
@@ -223,12 +228,14 @@ app.post('/transferGroup', async (req, res) => {
     // { from: 1308, to: 1473 },
     // { from: 1205, to: 1475 },
     // { from: 767, to: 1476 },
-    { from: 1398, to: 1478 },
+    // { from: 917, to: 1479 },
+    // { from: 168, to: 1480 },
+    { from: 1157, to: 1795 },
   ];
 
   try {
     for (const group of groups) {
-      await transferGroup(group.from, group.to, 7365);
+      await transferGroup(group.from, group.to, 7316);
     }
 
     res.status(200).send('Ok');
@@ -250,6 +257,36 @@ app.post('/getCathedralsFromExcel', async (req, res) => {
 app.post('/addCitizenship', async (req, res) => {
   try {
     await addCitizenshipToTable();
+
+    res.status(200).send('Ok');
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parseStudentMarks', async (req, res) => {
+  try {
+    const result = await parseAllMarksFiles();
+
+    res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parseFunding', async (req, res) => {
+  try {
+    const result = await parseFunding();
+
+    res.status(200).send(result);
+  } catch (err) {
+    res.status(500).send(err?.message || err);
+  }
+});
+
+app.post('/parseEios', async (req, res) => {
+  try {
+    await parseEios();
 
     res.status(200).send('Ok');
   } catch (err) {

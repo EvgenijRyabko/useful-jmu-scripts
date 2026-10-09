@@ -6,6 +6,8 @@ data
 
 src/modules/getCathedralsFromExcel/files
 
+src/modules/parseStudentMarks/result
+
 result.json
 
 data.json

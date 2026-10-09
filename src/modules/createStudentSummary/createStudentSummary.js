@@ -6,6 +6,18 @@ import { jmuConnection } from '../../database/knexfile.js';
 import { ExcelTable } from '../../utils/excel.fileGenerator.js';
 import { defaultCell, headerStyle, rowTitleStyle } from '../../utils/excel.styles.js';
 
+// Порядок блоков и колонок соответствует форме 2.12 (колонки 3–32).
+// Для базового ВО и специализированной магистратуры уровней в БД нет — блоки заполняются нулями.
+const programs = [
+  { idLevel: 1, label: 'Программы бакалавриата' },
+  { idLevel: 3, label: 'Программы специалитета' },
+  { idLevel: 2, label: 'Программы магистратуры' },
+  { idLevel: null, label: 'Программы базового высшего образования' },
+  { idLevel: null, label: 'Программы магистратуры специализированного высшего образования' },
+];
+
+const emptyData = { accepted: [], current: [], graduated: [] };
+
 export const getStudentSummary = async (year, form) => {
   const formEnum = {
     1: 'ОФО',
@@ -13,11 +25,22 @@ export const getStudentSummary = async (year, form) => {
     3: 'ОЗФО',
   };
 
-  const data = {
-    3: await getDataByLevel(form, 1, year),
-    9: await getDataByLevel(form, 3, year),
-    15: await getDataByLevel(form, 2, year),
-  };
+  const data = {};
+
+  for (let i = 0; i < programs.length; i++) {
+    const { idLevel } = programs[i];
+
+    data[3 + i * 6] = idLevel ? await getDataByLevel(form, idLevel, year) : emptyData;
+  }
+
+  // Без даты рождения студент попадает в «Всего», но ни в одну возрастную строку —
+  // тогда строка 01 не сойдётся с суммой строк 02–20
+  for (const { accepted, current, graduated } of Object.values(data)) {
+    const withoutAge = [...accepted, ...current, ...graduated].filter((el) => el.age === null);
+
+    if (withoutAge.length)
+      console.warn(`⚠️ Есть студенты без даты рождения: ${getTotal(withoutAge).all}`);
+  }
 
   const excel = new ExcelTable(`Отчет по студентам ${formEnum[form]}`);
 
@@ -31,22 +54,22 @@ export const getStudentSummary = async (year, form) => {
 
   fillData(data, sheet);
 
-  fillFooter(data, sheet);
+  fillFooter(sheet);
 
   await excel.saveTable('./data');
 };
 
-const defaultQuery = (form, level) => {
+const defaultQuery = (form, level, year) => {
   return jmuConnection('students_groups as sg')
     .select({
-      age: jmuConnection.raw(`date_part('year', age(current_date, s.birthday))`),
-      students: jmuConnection.count('s.id'),
-      female: jmuConnection.sum(
-        jmuConnection.raw(`case 
-		        when s.gender = 'female' then 1
-		        else 0
-	        end`),
-      ),
+      // Число полных лет на 1 января следующего за отчётным года
+      age: jmuConnection.raw(`date_part('year', age(make_date(?::int + 1, 1, 1), s.birthday))`, [
+        year,
+      ]),
+      // distinct: у студента может быть несколько записей в группах одного уровня
+      // (отчислен из одной группы и зачислен в другую, либо ошибочно «Обучается» в двух)
+      students: jmuConnection.raw('count(distinct s.id)'),
+      female: jmuConnection.raw(`count(distinct s.id) filter (where s.gender = 'female')`),
     })
     .innerJoin('study_groups as gr', 'sg.id_group', 'gr.id')
     .innerJoin('students as s', 'sg.id_student', 's.id')
@@ -70,7 +93,8 @@ const getAcceptedAmount = (query, year) => {
  * @param {Knex} query
  */
 const getCurrentAmount = (query) => {
-  return query.where('sg.status', 0).where('gr.closed', false);
+  // 0 — обучается, 5 — в академ отпуске
+  return query.whereIn('sg.status', [0, 5]).where('gr.closed', false);
 };
 
 /**
@@ -88,16 +112,10 @@ const getGraduatedAmount = (query, year) => {
  * @param {string} sheetName
  */
 const fillHeaders = (sheet, excel, sheetName) => {
-  const dataArr = [
-    { idLevel: 1, label: 'Программы бакалавриата' },
-    { idLevel: 3, label: 'Программы специалитета' },
-    { idLevel: 2, label: 'Программы магистратуры' },
-  ];
-
   let initialCol = 3;
 
-  for (let i = 0; i < dataArr.length; i++) {
-    const obj = dataArr[i];
+  for (let i = 0; i < programs.length; i++) {
+    const obj = programs[i];
 
     const headers = [
       'Принято',
@@ -126,7 +144,7 @@ const fillHeaders = (sheet, excel, sheetName) => {
   sheet.getCell(1, 2).style = headerStyle;
 
   excel.fillSimpleHeaders(
-    Array.from({ length: 20 }, (_, i) => i + 1),
+    Array.from({ length: 2 + programs.length * 6 }, (_, i) => i + 1),
     sheetName,
     headerStyle,
     3,
@@ -144,17 +162,17 @@ const fillData = (data, sheet) => {
    */
   const dataObjKeys = {
     Всего: undefined,
-    'В возрасте (число полных лет на 1 января следующего года): моложе 15 лет': { to: 14 },
+    'В возрасте (число полных лет на 1 января следующего года): моложе 15 лет': { to: 15 },
     '15 лет': 15,
     '16 лет': 16,
     '17 лет': 17,
     '18 лет': 18,
     '19 лет': 19,
     '20 лет': 20,
-    '21 лет': 21,
-    '22 лет': 22,
-    '23 лет': 23,
-    '24 лет': 24,
+    '21 год': 21,
+    '22 года': 22,
+    '23 года': 23,
+    '24 года': 24,
     '25 лет': 25,
     '26 лет': 26,
     '27 лет': 27,
@@ -176,7 +194,7 @@ const fillData = (data, sheet) => {
         horizontal: 'left',
       },
     };
-    sheet.getCell(row, 2).value = row - 3;
+    sheet.getCell(row, 2).value = String(row - 3).padStart(2, '0');
     sheet.getCell(row, 2).style = rowTitleStyle;
 
     for (const col in data) {
@@ -214,20 +232,12 @@ const fillData = (data, sheet) => {
 
 /**
  *
- * @param {*} data
  * @param {import('exceljs').Worksheet} sheet
  */
-const fillFooter = (data, sheet) => {
-  let total = 0;
-
-  for (const key in data) {
-    for (const valKey in data[key]) {
-      if (valKey.includes('Total')) total += data[key][valKey].all;
-    }
-  }
-
-  sheet.mergeCells(24, 1, 24, 20);
-  sheet.getCell(24, 1).value = `Код по ОКЕИ: человек – ${total}`;
+const fillFooter = (sheet) => {
+  sheet.mergeCells(24, 1, 24, 2 + programs.length * 6);
+  // 792 — код единицы измерения «человек» по ОКЕИ, а не количество
+  sheet.getCell(24, 1).value = 'Код по ОКЕИ: человек – 792';
   sheet.getCell(24, 1).style = {
     ...headerStyle,
     alignment: {
@@ -238,21 +248,11 @@ const fillFooter = (data, sheet) => {
 };
 
 const getDataByLevel = async (form, idLevel, year) => {
-  const accepted = await getAcceptedAmount(defaultQuery(form, idLevel), year);
-  const current = await getCurrentAmount(defaultQuery(form, idLevel));
-  const graduated = await getGraduatedAmount(
-    defaultQuery(form, idLevel),
-    idLevel === 3 ? Number(year) - 1 : year,
-  );
+  const accepted = await getAcceptedAmount(defaultQuery(form, idLevel, year), year);
+  const current = await getCurrentAmount(defaultQuery(form, idLevel, year));
+  const graduated = await getGraduatedAmount(defaultQuery(form, idLevel, year), year);
 
-  return {
-    accepted,
-    acceptedTotal: getTotal(accepted),
-    current,
-    currentTotal: getTotal(current),
-    graduated,
-    graduatedTotal: getTotal(graduated),
-  };
+  return { accepted, current, graduated };
 };
 
 const getTotal = (data) => {

@@ -39,8 +39,6 @@ const updateNewGroup = (trx, id) => {
 };
 
 const createStudentGroupOrder = (trx, idOrder, idStudentGroup) => {
-  console.log(idStudentGroup, idOrder);
-
   return trx('students_groups_orders').insert({
     id_students_groups: idStudentGroup,
     id_order: idOrder,
@@ -140,6 +138,26 @@ const insertStudentMark = (trx, oldData, newSubjectControlId, newStudentGroupId)
   });
 };
 
+const createNewWork = async (trx, tableName, oldData, newData) => {
+  const oldWork = await connection(tableName)
+    .where('id_student_group', oldData.idStudentGroup)
+    .andWhere('id_subject_control', oldData.idSubjectControl)
+    .first();
+
+  console.debug(`${tableName}`);
+  console.debug(oldWork);
+
+  if (oldWork) {
+    delete oldWork.id;
+
+    await trx(tableName).insert({
+      ...oldWork,
+      id_student_group: newData.idStudentGroup,
+      id_subject_control: newData.idSubjectControl,
+    });
+  }
+};
+
 export const transferGroup = async (idGroupFrom, idGroupTo, idOrder) => {
   const trx = await connection.transaction();
 
@@ -166,7 +184,7 @@ export const transferGroup = async (idGroupFrom, idGroupTo, idOrder) => {
 
       // const newStudentGroup = await getStudentGroup(idGroupTo, studentGroup.id_student);
 
-      await sgIds.push({
+      sgIds.push({
         oldId: studentGroup.id,
         newId: newStudentGroupId,
       });
@@ -216,6 +234,39 @@ export const transferGroup = async (idGroupFrom, idGroupTo, idOrder) => {
         // Копирование оценок из прошлого плана
         for (const sgId of sgIds) {
           const marks = await getStudentMarks(subjectControl.id, sgId.oldId);
+
+          await Promise.all([
+            createNewWork(
+              trx,
+              'practices',
+              { idStudentGroup: sgId.oldId, idSubjectControl: subjectControl.id },
+              { idStudentGroup: sgId.newId, idSubjectControl: newSubjectControlId },
+            ),
+            createNewWork(
+              trx,
+              'course_works',
+              { idStudentGroup: sgId.oldId, idSubjectControl: subjectControl.id },
+              { idStudentGroup: sgId.newId, idSubjectControl: newSubjectControlId },
+            ),
+            createNewWork(
+              trx,
+              'final_exam',
+              { idStudentGroup: sgId.oldId, idSubjectControl: subjectControl.id },
+              { idStudentGroup: sgId.newId, idSubjectControl: newSubjectControlId },
+            ),
+            createNewWork(
+              trx,
+              'research_works',
+              { idStudentGroup: sgId.oldId, idSubjectControl: subjectControl.id },
+              { idStudentGroup: sgId.newId, idSubjectControl: newSubjectControlId },
+            ),
+            createNewWork(
+              trx,
+              'state_exam',
+              { idStudentGroup: sgId.oldId, idSubjectControl: subjectControl.id },
+              { idStudentGroup: sgId.newId, idSubjectControl: newSubjectControlId },
+            ),
+          ]);
 
           for (const mark of marks) {
             await insertStudentMark(trx, mark, newSubjectControlId, sgId.newId);
